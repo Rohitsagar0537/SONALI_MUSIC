@@ -85,8 +85,8 @@ async def get_thumb(videoid):
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
 
         # Top-right "text"
-        text_size = draw.textsize("𝐏ᴜʀᴠɪ 𝐁σᴛs    ", font=font)
-        draw.text((1280 - text_size[0] - 10, 10), "𝐏ᴜʀᴠɪ 𝐁σᴛs    ", fill="yellow", font=font)
+        text_size = draw.textsize("PURVI BOTS    ", font=font)
+        draw.text((1280 - text_size[0] - 10, 10), "PURVI BOTS    ", fill="yellow", font=font)
 
         # Channel name + Views 
         draw.text(
