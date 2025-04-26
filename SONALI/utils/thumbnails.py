@@ -36,14 +36,27 @@ async def get_thumb(videoid):
     try:
         results = VideosSearch(url, limit=1)
         for result in (await results.next())["result"]:
-            title = result.get("title", "Unsupported Title")
-            title = re.sub(r"\W+", " ", title).title()
-            duration = result.get("duration", "Unknown")
+            try:
+                title = result["title"]
+                title = re.sub("\W+", " ", title)
+                title = title.title()
+            except:
+                title = "Unsupported Title"
+            try:
+                duration = result["duration"]
+            except:
+                duration = "Unknown Mins"
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            views = result.get("viewCount", {}).get("short", "Unknown Views")
-            channel = result.get("channel", {}).get("name", "Unknown Channel")
+            try:
+                views = result["viewCount"]["short"]
+            except:
+                views = "Unknown Views"
+            try:
+                channel = result["channel"]["name"]
+            except:
+                channel = "Unknown Channel"
 
-        # Download thumbnail
+        # Download thumbnail image
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
@@ -51,50 +64,89 @@ async def get_thumb(videoid):
                     await f.write(await resp.read())
                     await f.close()
 
-        # Open and process images
         youtube = Image.open(f"cache/thumb{videoid}.png")
-        youtube = changeImageSize(1280, 720, youtube)
-        blurred_bg = youtube.filter(ImageFilter.BoxBlur(15))
+        image1 = changeImageSize(1280, 720, youtube)
+        image2 = image1.convert("RGBA")
 
-        enhancer = ImageEnhance.Brightness(blurred_bg)
-        blurred_bg = enhancer.enhance(0.5)
+        # Create blur background
+        background = image2.filter(filter=ImageFilter.BoxBlur(10))
+        enhancer = ImageEnhance.Brightness(background)
+        background = enhancer.enhance(0.5)
+        draw = ImageDraw.Draw(background)
 
-        final = Image.new("RGBA", (1280, 720))
-        final.paste(blurred_bg, (0, 0))
-        final.paste(youtube, (0, 0))
+        # Prepare clear thumbnail with white border
+        thumbnail_size = (800, 450)  # Size of the center thumbnail
+        thumb = image1.resize(thumbnail_size)
 
-        draw = ImageDraw.Draw(final)
+        # Create a white border
+        border_size = 10  # Thickness of the white border
+        bordered_thumb = Image.new('RGBA', (thumbnail_size[0] + border_size * 2, thumbnail_size[1] + border_size * 2), (255, 255, 255, 255))
+        bordered_thumb.paste(thumb, (border_size, border_size))
+
+        # Paste bordered thumbnail on background
+        pos_x = (1280 - bordered_thumb.size[0]) // 2
+        pos_y = (720 - bordered_thumb.size[1]) // 2
+        background.paste(bordered_thumb, (pos_x, pos_y), bordered_thumb)
 
         # Fonts
-        font_tag = ImageFont.truetype("SONALI/assets/font.ttf", 30)
-        font_channel = ImageFont.truetype("SONALI/assets/font2.ttf", 28)
-        font_title = ImageFont.truetype("SONALI/assets/font.ttf", 42)
-        font_time = ImageFont.truetype("SONALI/assets/font2.ttf", 36)
+        arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
+        font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
 
-        # Top SONALI Tag
-        text_tag = "TEAM SONALI BOTS"
-        w_tag, _ = draw.textsize(text_tag, font=font_tag)
-        draw.text((1280 - w_tag - 30, 20), text_tag, fill="white", font=font_tag)
+        # "TEAM SONALI BOTS" text
+        text_size = draw.textsize("TEAM SONALI BOTS    ", font=font)
+        draw.text((1280 - text_size[0] - 10, 10), "TEAM SONALI BOTS    ", fill="white", font=font)
 
-        # Channel Name and Views
-        draw.text((50, 560), f"{channel} | {views}", fill="white", font=font_channel)
+        # Channel name and views
+        draw.text(
+            (55, 560),
+            f"{channel} | {views[:23]}",
+            (255, 255, 255),
+            font=arial,
+        )
 
-        # Title
-        draw.text((50, 610), clear(title), fill="white", font=font_title)
+        # Video title
+        draw.text(
+            (57, 600),
+            clear(title),
+            (255, 255, 255),
+            font=font,
+        )
 
-        # Bottom timing
-        time_text = f"00:00 ──────────────── {duration}"
-        w_time, _ = draw.textsize(time_text, font=font_time)
-        draw.text(((1280 - w_time) / 2, 675), time_text, fill="white", font=font_time)
+        # Line separator
+        draw.line(
+            [(55, 660), (1220, 660)],
+            fill="white",
+            width=5,
+            joint="curve",
+        )
 
+        # Duration indicators
+        draw.ellipse(
+            [(918, 648), (942, 672)],
+            outline="white",
+            fill="white",
+            width=15,
+        )
+        draw.text(
+            (36, 685),
+            "00:00",
+            (255, 255, 255),
+            font=arial,
+        )
+        draw.text(
+            (1185, 685),
+            f"{duration[:23]}",
+            (255, 255, 255),
+            font=arial,
+        )
+
+        # Clean up
         try:
             os.remove(f"cache/thumb{videoid}.png")
         except:
             pass
-
-        final.save(f"cache/{videoid}.png")
+        background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
-
     except Exception as e:
         print(e)
         return YOUTUBE_IMG_URL
