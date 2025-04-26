@@ -58,22 +58,27 @@ async def get_thumb(videoid):
         youtube = Image.open(f"cache/thumb{videoid}.png")
         youtube = youtube.convert("RGBA")
 
-        # Create main background
-        background = youtube.resize((1280, 580)).filter(ImageFilter.GaussianBlur(radius=10))
+        # Create main background (16:9 aspect ratio)
+        background = youtube.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=10))
         enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.8)  # halka sa dark
+        background = enhancer.enhance(0.8)  # Slightly dark
 
         draw = ImageDraw.Draw(background)
 
-        # Prepare center thumbnail
+        # Prepare center thumbnail (640x360)
         center_thumb_size = (640, 360)
         center_thumb = youtube.resize(center_thumb_size)
 
-        # Center position
-        pos_x = (1280 - center_thumb_size[0]) // 2
-        pos_y = (580 - center_thumb_size[1]) // 2
+        # Add a white border around the center thumbnail
+        border_size = 10  # Set the border size
+        bordered_center_thumb = Image.new("RGBA", (center_thumb_size[0] + 2 * border_size, center_thumb_size[1] + 2 * border_size), (255, 255, 255))
+        bordered_center_thumb.paste(center_thumb, (border_size, border_size))
 
-        background.paste(center_thumb, (pos_x, pos_y))
+        # Center position for the bordered thumbnail
+        pos_x = (1280 - bordered_center_thumb.size[0]) // 2
+        pos_y = (720 - bordered_center_thumb.size[1]) // 2
+
+        background.paste(bordered_center_thumb, (pos_x, pos_y))
 
         # Fonts
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
