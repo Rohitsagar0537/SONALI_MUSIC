@@ -56,69 +56,62 @@ async def get_thumb(videoid):
                     await f.close()
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
-        image1 = changeImageSize(1280, 720, youtube)
-        image2 = image1.convert("RGBA")
+        youtube = youtube.convert("RGBA")
 
-        # Create blurred background
-        background = image2.filter(ImageFilter.BoxBlur(10))
+        # Create main background
+        background = youtube.resize((1280, 580)).filter(ImageFilter.GaussianBlur(radius=10))
         enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.5)
+        background = enhancer.enhance(0.8)  # halka sa dark
+
         draw = ImageDraw.Draw(background)
 
-        # Prepare clear thumbnail with white border (fixed 1280x580)
-        thumb_width = 1280
-        thumb_height = 580
-        thumb_size = (thumb_width, thumb_height)
-        thumb = image1.resize(thumb_size)
+        # Prepare center thumbnail
+        center_thumb_size = (640, 360)
+        center_thumb = youtube.resize(center_thumb_size)
 
-        border_size = 8
-        bordered_thumb = Image.new('RGBA', (thumb_size[0] + border_size * 2, thumb_size[1] + border_size * 2), (255, 255, 255, 255))
-        bordered_thumb.paste(thumb, (border_size, border_size))
+        # Center position
+        pos_x = (1280 - center_thumb_size[0]) // 2
+        pos_y = (580 - center_thumb_size[1]) // 2
 
-        # Center paste
-        pos_x = (1280 - bordered_thumb.size[0]) // 2
-        pos_y = (720 - bordered_thumb.size[1]) // 2
-        background.paste(bordered_thumb, (pos_x, pos_y), bordered_thumb)
+        background.paste(center_thumb, (pos_x, pos_y))
 
         # Fonts
-        arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)  # normal
-        font = ImageFont.truetype("SONALI/assets/font.ttf", 30)    # bold
+        arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
+        font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
 
-        # "TEAM SONALI BOTS" top-right
+        # Top-right "TEAM SONALI BOTS"
         text_size = draw.textsize("TEAM SONALI BOTS    ", font=font)
         draw.text((1280 - text_size[0] - 10, 10), "TEAM SONALI BOTS    ", fill="white", font=font)
 
-        # Channel name and views — thoda niche
+        # Channel name and views
         draw.text(
-            (55, 590),
+            (55, 470),
             f"{channel} | {views[:23]}",
             (255, 255, 255),
             font=arial,
         )
 
-        # Video title — thoda aur niche
+        # Video title
         draw.text(
-            (57, 630),
-            clear(title),
+            (57, 510),
+            title,
             (255, 255, 255),
             font=font,
         )
 
-        # Bottom bold line: 00:00 --- 3:45
+        # Bottom line
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
-
-        # "00:00"
-        draw.text((55, 685), "00:00", fill="white", font=bold_font)
+        draw.text((55, 545), "00:00", fill="white", font=bold_font)
 
         # Line
         start_x = 150
         end_x = 1130
-        line_y = 700
+        line_y = 560
         draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=4)
 
         # Duration
         duration_text_size = draw.textsize(duration, font=bold_font)
-        draw.text((1180 - duration_text_size[0], 685), duration, fill="white", font=bold_font)
+        draw.text((1180 - duration_text_size[0], 545), duration, fill="white", font=bold_font)
 
         # Clean up
         try:
