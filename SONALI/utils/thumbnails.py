@@ -30,10 +30,9 @@ async def get_thumb(videoid):
         for result in (await results.next())["result"]:
             try:
                 title = result["title"]
-                title = re.sub("\W+", " ", title)
-                title = title.title()
+                title = re.sub(r"\W+", " ", title).title()
             except:
-                title = "Unsupported Title"
+                title = "Unknown Title"
             try:
                 duration = result["duration"]
             except:
@@ -51,79 +50,41 @@ async def get_thumb(videoid):
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
-                    f = await aiofiles.open(
-                        f"cache/thumb{videoid}.png", mode="wb"
-                    )
+                    f = await aiofiles.open(f"cache/thumb{videoid}.png", mode="wb")
                     await f.write(await resp.read())
                     await f.close()
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
         image1 = changeImageSize(1280, 720, youtube)
         image2 = image1.convert("RGBA")
-        background = image2.filter(filter=ImageFilter.BoxBlur(20))
+        background = image2.filter(ImageFilter.GaussianBlur(12))
         enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.8)
-
-        Xcenter = youtube.width / 2
-        Ycenter = youtube.height / 2
-        x1 = Xcenter - 300
-        y1 = Ycenter - 300
-        x2 = Xcenter + 300
-        y2 = Ycenter + 300
-        logo = youtube.crop((x1, y1, x2, y2))
-        logo.thumbnail((600, 600), Image.Resampling.LANCZOS)
-        logo = ImageOps.expand(logo, border=10, fill="white")
-        background.paste(logo, (340, 60))
+        background = enhancer.enhance(0.4)
 
         draw = ImageDraw.Draw(background)
 
-        title_font = ImageFont.truetype("SONALI/assets/font2.ttf", 80)
-        artist_font = ImageFont.truetype("SONALI/assets/font2.ttf", 40)
-        small_font = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
+        font_main = ImageFont.truetype("PURVIMUSIC/assets/font.ttf", 50)
+        font_small = ImageFont.truetype("PURVIMUSIC/assets/font2.ttf", 35)
+        font_tag = ImageFont.truetype("PURVIMUSIC/assets/font.ttf", 28)
 
-        title_wrapped = textwrap.wrap(title, width=20)
-        title_text = "\n".join(title_wrapped[:2])
-        draw.text(
-            (340, 300),
-            title_text,
-            fill="yellow",
-            stroke_width=3,
-            stroke_fill="red",
-            font=title_font,
-            align="center"
-        )
+        # Upper Tag
+        tag_text = "TEAM PURVI BOTS PRESENTS"
+        tag_size = draw.textsize(tag_text, font=font_tag)
+        draw.text(((1280 - tag_size[0]) // 2, 20), tag_text, fill="yellow", font=font_tag)
 
-        draw.text(
-            (340, 400),
-            f"Singer: {channel}",
-            fill="white",
-            stroke_width=1,
-            stroke_fill="black",
-            font=artist_font,
-        )
+        # Title in center with stroke effect
+        title_text = clear(title)
+        title_pos = ((1280 - draw.textsize(title_text, font=font_main)[0]) // 2, 550)
+        draw.text(title_pos, title_text, font=font_main, fill="white", stroke_width=2, stroke_fill="black")
 
-        draw.rectangle((50, 500, 250, 550), fill="black")
-        draw.text(
-            (60, 510),
-            "VIDEO SONG",
-            fill="white",
-            font=small_font,
-        )
-        draw.polygon([(220, 510), (240, 525), (220, 540)], fill="red")
+        # Channel and Views
+        info_text = f"{channel} | {views}"
+        draw.text((50, 630), info_text, fill="white", font=font_small)
 
-        draw.rectangle((0, 700, 1280, 720), fill="black")
-        draw.text(
-            (10, 702),
-            "00:00",
-            fill="white",
-            font=small_font,
-        )
-        draw.text(
-            (1200, 702),
-            f"{duration}",
-            fill="white",
-            font=small_font,
-        )
+        # Duration bar
+        draw.rectangle([(50, 670), (1230, 700)], outline="white", width=4)
+        draw.text((55, 705), "00:00", fill="white", font=font_tag)
+        draw.text((1150, 705), duration, fill="white", font=font_tag)
 
         try:
             os.remove(f"cache/thumb{videoid}.png")
@@ -132,4 +93,5 @@ async def get_thumb(videoid):
         background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
     except Exception as e:
+        print(e)
         return YOUTUBE_IMG_URL
