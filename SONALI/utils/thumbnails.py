@@ -1,32 +1,23 @@
-import os
-import re
-import aiofiles
-import aiohttp
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
-from unidecode import unidecode
-from youtubesearchpython.__future__ import VideosSearch
-
 from SONALI import app
 from config import YOUTUBE_IMG_URL
 
 
+import os
+import re
+import aiohttp
+import aiofiles
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
+from youtubesearchpython.__future__ import VideosSearch
+
+def clear(text):
+    return re.sub("\s+", " ", text).strip()
+
 def changeImageSize(maxWidth, maxHeight, image):
     widthRatio = maxWidth / image.size[0]
     heightRatio = maxHeight / image.size[1]
-    newWidth = int(widthRatio * image.size[0])
-    newHeight = int(heightRatio * image.size[1])
-    newImage = image.resize((newWidth, newHeight))
-    return newImage
-
-
-def clear(text):
-    list = text.split(" ")
-    title = ""
-    for i in list:
-        if len(title) + len(i) < 60:
-            title += " " + i
-    return title.strip()
-
+    newWidth = int(image.size[0] * min(widthRatio, heightRatio))
+    newHeight = int(image.size[1] * min(widthRatio, heightRatio))
+    return image.resize((newWidth, newHeight))
 
 async def get_thumb(videoid):
     if os.path.isfile(f"cache/{videoid}.png"):
@@ -74,9 +65,9 @@ async def get_thumb(videoid):
         background = enhancer.enhance(0.5)
         draw = ImageDraw.Draw(background)
 
-        # Prepare clear thumbnail with white border
-        thumb_width = 960
-        thumb_height = int((9 / 16) * thumb_width)  # 16:9 ratio
+        # Prepare clear thumbnail with white border (fixed 1100x620)
+        thumb_width = 1100
+        thumb_height = 620
         thumb_size = (thumb_width, thumb_height)
         thumb = image1.resize(thumb_size)
 
@@ -137,6 +128,7 @@ async def get_thumb(videoid):
 
         background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
+
     except Exception as e:
         print(e)
         return YOUTUBE_IMG_URL
