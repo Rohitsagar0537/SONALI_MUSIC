@@ -56,7 +56,7 @@ async def get_thumb(videoid):
             except:
                 channel = "Unknown Channel"
 
-        # Download thumbnail image
+        # Download thumbnail
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
@@ -68,22 +68,23 @@ async def get_thumb(videoid):
         image1 = changeImageSize(1280, 720, youtube)
         image2 = image1.convert("RGBA")
 
-        # Create blur background
-        background = image2.filter(filter=ImageFilter.BoxBlur(10))
+        # Create blurred background
+        background = image2.filter(ImageFilter.BoxBlur(10))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.5)
         draw = ImageDraw.Draw(background)
 
         # Prepare clear thumbnail with white border
-        thumbnail_size = (800, 450)  # Size of the center thumbnail
-        thumb = image1.resize(thumbnail_size)
+        thumb_width = 960
+        thumb_height = int((9 / 16) * thumb_width)  # Maintain 16:9 aspect ratio
+        thumb_size = (thumb_width, thumb_height)
+        thumb = image1.resize(thumb_size)
 
-        # Create a white border
-        border_size = 10  # Thickness of the white border
-        bordered_thumb = Image.new('RGBA', (thumbnail_size[0] + border_size * 2, thumbnail_size[1] + border_size * 2), (255, 255, 255, 255))
+        border_size = 8  # White border thickness
+        bordered_thumb = Image.new('RGBA', (thumb_size[0] + border_size * 2, thumb_size[1] + border_size * 2), (255, 255, 255, 255))
         bordered_thumb.paste(thumb, (border_size, border_size))
 
-        # Paste bordered thumbnail on background
+        # Paste at center
         pos_x = (1280 - bordered_thumb.size[0]) // 2
         pos_y = (720 - bordered_thumb.size[1]) // 2
         background.paste(bordered_thumb, (pos_x, pos_y), bordered_thumb)
@@ -92,7 +93,7 @@ async def get_thumb(videoid):
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
         font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
 
-        # "TEAM SONALI BOTS" text
+        # "TEAM SONALI BOTS" top-right
         text_size = draw.textsize("TEAM SONALI BOTS    ", font=font)
         draw.text((1280 - text_size[0] - 10, 10), "TEAM SONALI BOTS    ", fill="white", font=font)
 
@@ -112,39 +113,26 @@ async def get_thumb(videoid):
             font=font,
         )
 
-        # Line separator
-        draw.line(
-            [(55, 660), (1220, 660)],
-            fill="white",
-            width=5,
-            joint="curve",
-        )
+        # Bottom line with "00:00 ------------- 3:45"
+        # Starting "00:00"
+        draw.text((55, 685), "00:00", fill="white", font=arial)
 
-        # Duration indicators
-        draw.ellipse(
-            [(918, 648), (942, 672)],
-            outline="white",
-            fill="white",
-            width=15,
-        )
-        draw.text(
-            (36, 685),
-            "00:00",
-            (255, 255, 255),
-            font=arial,
-        )
-        draw.text(
-            (1185, 685),
-            f"{duration[:23]}",
-            (255, 255, 255),
-            font=arial,
-        )
+        # Line between
+        start_x = 150
+        end_x = 1130
+        line_y = 700
+        draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=4)
+
+        # Ending Duration
+        duration_text_size = draw.textsize(duration, font=arial)
+        draw.text((1180 - duration_text_size[0], 685), duration, fill="white", font=arial)
 
         # Clean up
         try:
             os.remove(f"cache/thumb{videoid}.png")
         except:
             pass
+
         background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
     except Exception as e:
