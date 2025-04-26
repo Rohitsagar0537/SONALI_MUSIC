@@ -58,65 +58,64 @@ async def get_thumb(videoid):
         youtube = Image.open(f"cache/thumb{videoid}.png")
         youtube = youtube.convert("RGBA")
 
-        # Create main background (16:9 aspect ratio)
+        # Main background (1280x720) with more dark blur
         background = youtube.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=10))
         enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.8)  # Slightly dark
+        background = enhancer.enhance(0.6)  # पहले 0.8 था, अब और dark किया 0.6
 
         draw = ImageDraw.Draw(background)
 
-        # Prepare center thumbnail (942x422)
-        center_thumb_size = (942, 422)  # Updated size
+        # Center thumbnail (942x422) with white border
+        center_thumb_size = (942, 422)
         center_thumb = youtube.resize(center_thumb_size)
 
-        # Add a white border around the center thumbnail
-        border_size = 10  # Set the border size
+        border_size = 14
         bordered_center_thumb = Image.new("RGBA", (center_thumb_size[0] + 2 * border_size, center_thumb_size[1] + 2 * border_size), (255, 255, 255))
         bordered_center_thumb.paste(center_thumb, (border_size, border_size))
 
-        # Center position for the bordered thumbnail
+        # Center position (थोड़ा ऊपर किया)
         pos_x = (1280 - bordered_center_thumb.size[0]) // 2
-        pos_y = (720 - bordered_center_thumb.size[1]) // 2
+        pos_y = ((720 - bordered_center_thumb.size[1]) // 2) - 30  # 30px ऊपर कर दिया
 
         background.paste(bordered_center_thumb, (pos_x, pos_y))
 
         # Fonts
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
         font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
+        bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
 
         # Top-right "TEAM SONALI BOTS"
         text_size = draw.textsize("TEAM SONALI BOTS    ", font=font)
         draw.text((1280 - text_size[0] - 10, 10), "TEAM SONALI BOTS    ", fill="white", font=font)
 
-        # Channel name and views (moved further down)
+        # Channel name + Views (थोड़ा नीचे)
         draw.text(
-            (55, 570),  # Increased the Y position to move it down further
+            (55, 580),  # पहले 570 था, अब 580
             f"{channel} | {views[:23]}",
             (255, 255, 255),
             font=arial,
         )
 
-        # Video title (moved further down)
+        # Video Title (थोड़ा नीचे)
         draw.text(
-            (57, 610),  # Increased the Y position to move it down further
+            (57, 620),  # पहले 610 था, अब 620
             title,
             (255, 255, 255),
             font=font,
         )
 
-        # Bottom line
-        bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
-        draw.text((55, 645), "00:00", fill="white", font=bold_font)
+        # Bottom 00:00 और Line और Duration
+        draw.text((55, 655), "00:00", fill="white", font=bold_font)
 
         # Line
         start_x = 150
         end_x = 1130
-        line_y = 660  # Increased the line's Y position to match
+        line_y = 670
         draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=4)
 
-        # Duration (moved slightly down)
+        # Duration (लाइन के बाद थोड़ी space के साथ)
         duration_text_size = draw.textsize(duration, font=bold_font)
-        draw.text((1180 - duration_text_size[0], 645), duration, fill="white", font=bold_font)
+        draw.text((end_x + 10, 655), duration, fill="white", font=bold_font)
 
         # Clean up
         try:
