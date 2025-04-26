@@ -63,9 +63,9 @@ async def get_thumb(videoid):
 
         draw = ImageDraw.Draw(background)
 
-        font_main = ImageFont.truetype("PURVIMUSIC/assets/font.ttf", 50)
-        font_small = ImageFont.truetype("PURVIMUSIC/assets/font2.ttf", 35)
-        font_tag = ImageFont.truetype("PURVIMUSIC/assets/font.ttf", 28)
+        font_main = ImageFont.truetype("SONALI/assets/font.ttf", 50)
+        font_small = ImageFont.truetype("SONALI/assets/font2.ttf", 35)
+        font_tag = ImageFont.truetype("SONALI/assets/font.ttf", 28)
 
         # Upper Tag
         tag_text = "TEAM PURVI BOTS PRESENTS"
