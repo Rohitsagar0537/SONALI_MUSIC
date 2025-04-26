@@ -65,8 +65,8 @@ async def get_thumb(videoid):
 
         draw = ImageDraw.Draw(background)
 
-        # Prepare center thumbnail (640x360)
-        center_thumb_size = (640, 360)
+        # Prepare center thumbnail (800x450)
+        center_thumb_size = (800, 450)  # Increased size
         center_thumb = youtube.resize(center_thumb_size)
 
         # Add a white border around the center thumbnail
@@ -88,17 +88,17 @@ async def get_thumb(videoid):
         text_size = draw.textsize("TEAM SONALI BOTS    ", font=font)
         draw.text((1280 - text_size[0] - 10, 10), "TEAM SONALI BOTS    ", fill="white", font=font)
 
-        # Channel name and views
+        # Channel name and views (moved down slightly)
         draw.text(
-            (55, 470),
+            (55, 500),  # Increased the Y position to move it down
             f"{channel} | {views[:23]}",
             (255, 255, 255),
             font=arial,
         )
 
-        # Video title
+        # Video title (moved down slightly)
         draw.text(
-            (57, 510),
+            (57, 540),  # Increased the Y position to move it down
             title,
             (255, 255, 255),
             font=font,
@@ -106,17 +106,17 @@ async def get_thumb(videoid):
 
         # Bottom line
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
-        draw.text((55, 545), "00:00", fill="white", font=bold_font)
+        draw.text((55, 575), "00:00", fill="white", font=bold_font)
 
         # Line
         start_x = 150
         end_x = 1130
-        line_y = 560
+        line_y = 590  # Increased the line's Y position to match
         draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=4)
 
-        # Duration
+        # Duration (moved slightly down)
         duration_text_size = draw.textsize(duration, font=bold_font)
-        draw.text((1180 - duration_text_size[0], 545), duration, fill="white", font=bold_font)
+        draw.text((1180 - duration_text_size[0], 575), duration, fill="white", font=bold_font)
 
         # Clean up
         try:
