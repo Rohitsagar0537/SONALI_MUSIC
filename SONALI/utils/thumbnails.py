@@ -57,45 +57,54 @@ async def get_thumb(videoid):
         youtube = Image.open(f"cache/thumb{videoid}.png")
         image1 = changeImageSize(1280, 720, youtube)
         image2 = image1.convert("RGBA")
-        background = image2.filter(ImageFilter.GaussianBlur(12))
+
+        # Apply a blur effect to the background
+        background = image2.filter(ImageFilter.GaussianBlur(8))  # Lighter blur effect
         enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.4)
+        background = enhancer.enhance(0.5)  # Slightly higher brightness
+
+        # Prepare the foreground thumbnail without blur (centered)
+        thumbnail = Image.open(f"cache/thumb{videoid}.png")
+        thumbnail = changeImageSize(1280, 720, thumbnail)  # Ensure the thumbnail fits
+        background.paste(thumbnail, (0, 0), thumbnail.convert("RGBA"))  # Place the thumbnail on top without blur
 
         draw = ImageDraw.Draw(background)
 
-        font_main = ImageFont.truetype("SONALI/assets/font.ttf", 50)
-        font_small = ImageFont.truetype("SONALI/assets/font2.ttf", 35)
-        font_tag = ImageFont.truetype("SONALI/assets/font.ttf", 28)
+        # Fonts and text styles
+        font_main = ImageFont.truetype("SONALI/assets/font.ttf", 55)
+        font_small = ImageFont.truetype("SONALI/assets/font2.ttf", 38)
+        font_tag = ImageFont.truetype("SONALI/assets/font.ttf", 30)
 
         # Upper Tag
-        tag_text = "TEAM PURVI BOTS PRESENTS"
+        tag_text = "TEAM SONALI BOTS"
         tag_size = draw.textsize(tag_text, font=font_tag)
-        draw.text(((1280 - tag_size[0]) // 2, 20), tag_text, fill="yellow", font=font_tag)
+        draw.text(((1280 - tag_size[0]) // 2, 30), tag_text, fill="white", font=font_tag)
 
         # Title in center with stroke effect
         title_text = clear(title)
-        title_pos = ((1280 - draw.textsize(title_text, font=font_main)[0]) // 2, 550)
-        draw.text(title_pos, title_text, font=font_main, fill="white", stroke_width=2, stroke_fill="black")
+        title_pos = ((1280 - draw.textsize(title_text, font=font_main)[0]) // 2, 400)
+        draw.text(title_pos, title_text, font=font_main, fill="white", stroke_width=3, stroke_fill="black")
 
         # Channel and Views
         info_text = f"{channel} | {views}"
-        draw.text((50, 630), info_text, fill="white", font=font_small)
+        draw.text((50, 550), info_text, fill="white", font=font_small)
 
-        # Duration bar
-        draw.rectangle([(50, 670), (1230, 700)], outline="white", width=4)
-        draw.text((55, 705), "00:00", fill="white", font=font_tag)
-        draw.text((1150, 705), duration, fill="white", font=font_tag)
+        # Duration bar with sleek design
+        draw.rectangle([(50, 650), (1230, 680)], outline="white", width=3)
+        draw.text((55, 685), "00:00", fill="white", font=font_tag)
+        draw.text((1150, 685), duration, fill="white", font=font_tag)
 
-        # Add smooth white border
-        border_width = 20
-        border = Image.new("RGBA", (background.width + border_width * 2, background.height + border_width * 2), (255, 255, 255))
+        # Adding a clean, smooth white border around the image
+        border_width = 25
+        border = Image.new("RGBA", (background.width + border_width * 2, background.height + border_width * 2), (255, 255, 255, 255))
         border.paste(background, (border_width, border_width))
-        border = border.filter(ImageFilter.GaussianBlur(5))
+        border = border.filter(ImageFilter.GaussianBlur(5))  # Smooth blur
 
         try:
             os.remove(f"cache/thumb{videoid}.png")
         except:
             pass
+
         border.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
     except Exception as e:
