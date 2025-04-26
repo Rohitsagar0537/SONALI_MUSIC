@@ -65,9 +65,9 @@ async def get_thumb(videoid):
         background = enhancer.enhance(0.5)
         draw = ImageDraw.Draw(background)
 
-        # Prepare clear thumbnail with white border (fixed 1100x620)
-        thumb_width = 1100
-        thumb_height = 620
+        # Prepare clear thumbnail with white border (fixed 1280x580)
+        thumb_width = 1280
+        thumb_height = 580
         thumb_size = (thumb_width, thumb_height)
         thumb = image1.resize(thumb_size)
 
