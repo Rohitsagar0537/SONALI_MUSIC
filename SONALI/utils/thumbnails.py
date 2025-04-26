@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 from unidecode import unidecode
 from youtubesearchpython.__future__ import VideosSearch
 
-from SONALI import app  # PURVIMUSIC -> SONALI
+from SONALI import app
 from config import YOUTUBE_IMG_URL
 
 
@@ -36,24 +36,12 @@ async def get_thumb(videoid):
     try:
         results = VideosSearch(url, limit=1)
         for result in (await results.next())["result"]:
-            try:
-                title = result["title"]
-                title = re.sub(r"\W+", " ", title).title()
-            except:
-                title = "Unsupported Title"
-            try:
-                duration = result["duration"]
-            except:
-                duration = "Unknown Mins"
+            title = result.get("title", "Unsupported Title")
+            title = re.sub(r"\W+", " ", title).title()
+            duration = result.get("duration", "Unknown")
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            try:
-                views = result["viewCount"]["short"]
-            except:
-                views = "Unknown Views"
-            try:
-                channel = result["channel"]["name"]
-            except:
-                channel = "Unknown Channel"
+            views = result.get("viewCount", {}).get("short", "Unknown Views")
+            channel = result.get("channel", {}).get("name", "Unknown Channel")
 
         # Download thumbnail
         async with aiohttp.ClientSession() as session:
@@ -63,55 +51,48 @@ async def get_thumb(videoid):
                     await f.write(await resp.read())
                     await f.close()
 
-        # Open thumbnail
+        # Open and process images
         youtube = Image.open(f"cache/thumb{videoid}.png")
-        image1 = changeImageSize(1280, 720, youtube)
+        youtube = changeImageSize(1280, 720, youtube)
+        blurred_bg = youtube.filter(ImageFilter.BoxBlur(15))
 
-        # Create blurred background
-        image2 = image1.convert("RGBA")
-        background = image2.filter(ImageFilter.BoxBlur(10))
-        enhancer = ImageEnhance.Brightness(background)
-        background = enhancer.enhance(0.5)
+        enhancer = ImageEnhance.Brightness(blurred_bg)
+        blurred_bg = enhancer.enhance(0.5)
 
-        # Paste main thumbnail on top of background
-        background.paste(image1, (0, 0))
+        final = Image.new("RGBA", (1280, 720))
+        final.paste(blurred_bg, (0, 0))
+        final.paste(youtube, (0, 0))
 
-        draw = ImageDraw.Draw(background)
+        draw = ImageDraw.Draw(final)
 
         # Fonts
         font_tag = ImageFont.truetype("SONALI/assets/font.ttf", 30)
-        font_channel = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
-        font_title = ImageFont.truetype("SONALI/assets/font.ttf", 40)
-        font_time = ImageFont.truetype("SONALI/assets/font.ttf", 35)
+        font_channel = ImageFont.truetype("SONALI/assets/font2.ttf", 28)
+        font_title = ImageFont.truetype("SONALI/assets/font.ttf", 42)
+        font_time = ImageFont.truetype("SONALI/assets/font2.ttf", 36)
 
-        # Top tag
-        tag_text = "TEAM SONALI BOTS"
-        tag_width, _ = draw.textsize(tag_text, font=font_tag)
-        draw.text((1280 - tag_width - 20, 20), tag_text, fill="white", font=font_tag)
+        # Top SONALI Tag
+        text_tag = "TEAM SONALI BOTS"
+        w_tag, _ = draw.textsize(text_tag, font=font_tag)
+        draw.text((1280 - w_tag - 30, 20), text_tag, fill="white", font=font_tag)
 
-        # Channel and Views
-        info_text = f"{channel} | {views[:23]}"
-        draw.text((50, 560), info_text, fill="white", font=font_channel)
+        # Channel Name and Views
+        draw.text((50, 560), f"{channel} | {views}", fill="white", font=font_channel)
 
         # Title
-        song_title = clear(title)
-        draw.text((50, 600), song_title, fill="white", font=font_title)
+        draw.text((50, 610), clear(title), fill="white", font=font_title)
 
-        # Bottom Timing Line
-        timing_text = f"00:00 ──────────────── {duration[:23]}"
-        timing_width, _ = draw.textsize(timing_text, font=font_time)
-        timing_x = (1280 - timing_width) // 2
-        timing_y = 670
-        draw.text((timing_x, timing_y), timing_text, fill="white", font=font_time)
+        # Bottom timing
+        time_text = f"00:00 ──────────────── {duration}"
+        w_time, _ = draw.textsize(time_text, font=font_time)
+        draw.text(((1280 - w_time) / 2, 675), time_text, fill="white", font=font_time)
 
-        # Remove temp thumb
         try:
             os.remove(f"cache/thumb{videoid}.png")
         except:
             pass
 
-        # Save final
-        background.save(f"cache/{videoid}.png")
+        final.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
 
     except Exception as e:
