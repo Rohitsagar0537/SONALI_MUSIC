@@ -66,7 +66,7 @@ async def get_thumb(videoid):
         draw = ImageDraw.Draw(background)
 
         # Center thumbnail (942x422) with white border
-        center_thumb_size = (942, 422)
+        center_thumb_size = (950, 450)
         center_thumb = youtube.resize(center_thumb_size)
 
         border_size = 14
@@ -75,7 +75,7 @@ async def get_thumb(videoid):
 
         # Center position 
         pos_x = (1280 - bordered_center_thumb.size[0]) // 2
-        pos_y = ((720 - bordered_center_thumb.size[1]) // 2) - 30  # 30px 
+        pos_y = ((720 - bordered_center_thumb.size[1]) // 2) - 40  # 30px 
 
         background.paste(bordered_center_thumb, (pos_x, pos_y))
 
