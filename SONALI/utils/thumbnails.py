@@ -127,6 +127,7 @@ async def get_thumb(videoid: str) -> str:
     default_font = ImageFont.load_default()
     text_size = draw.textsize("PURVI BOTS    ", font=default_font)
     draw.text((1280 - text_size[4] - 10, 10), "PURVI BOTS    ", fill="yellow", font=default_font)
+
     # Cleanup and save
     try:
         os.remove(thumb_path)
