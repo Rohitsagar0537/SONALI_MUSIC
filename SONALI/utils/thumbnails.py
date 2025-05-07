@@ -124,7 +124,7 @@ async def get_thumb(videoid: str) -> str:
         bg.paste(black_ic, (ICONS_X, ICONS_Y), black_ic)
 
     # Add "PURVI BOTS" top-right (default font)
-    font = ImageFont.truetype("SONALI/assets/font.ttf", 30)  # 
+    font = ImageFont.truetype("SONALI/assets/font.ttf", 28)  # 
     text = "PURVI BOTS   "
     text_size = draw.textsize(text, font=font)
     draw.text((1280 - text_size[0] - 10, 10), text, fill="yellow", font=font)
