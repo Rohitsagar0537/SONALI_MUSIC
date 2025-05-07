@@ -126,7 +126,7 @@ async def get_thumb(videoid: str) -> str:
     # Add "PURVI BOTS" top-right (default font)
     default_font = ImageFont.load_default()
     text_size = draw.textsize("PURVI BOTS    ", font=default_font)
-    draw.text((1280 - text_size[4] - 10, 10), "PURVI BOTS    ", fill="yellow", font=default_font)
+    draw.text((1280 - text_size[0] - 10, 10), "PURVI BOTS    ", fill="yellow", font=default_font)
 
     # Cleanup and save
     try:
