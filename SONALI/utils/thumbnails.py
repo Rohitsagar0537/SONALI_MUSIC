@@ -124,10 +124,10 @@ async def get_thumb(videoid: str) -> str:
         bg.paste(black_ic, (ICONS_X, ICONS_Y), black_ic)
 
     # Add "PURVI BOTS" top-right (default font)
-    default_font = ImageFont.load_default()
-    text_size = draw.textsize("PURVI BOTS    ", font=default_font)
-    draw.text((1280 - text_size[0] - 10, 10), "PURVI BOTS    ", fill="yellow", font=default_font)
-
+    font = ImageFont.truetype("SONALI/assets/font2.ttf", 36)  # 
+    text = "TmPURVI BOTS   "
+    text_size = draw.textsize(text, font=font)
+    draw.text((1280 - text_size[0] - 10, 10), text, fill="yellow", font=font)
     # Cleanup and save
     try:
         os.remove(thumb_path)
